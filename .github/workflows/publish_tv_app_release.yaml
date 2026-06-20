@@ -35,7 +35,19 @@ jobs:
           cd simple_live_tv_app
           flutter pub get
 
-      #打包APK (debug模式，无需签名)
+      # 创建 debug key.properties
+      - name: Create debug key.properties
+        run: |
+          mkdir -p ~/.android
+          keytool -genkey -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US" || true
+          cat > simple_live_tv_app/android/key.properties << EOF
+          storeFile=$HOME/.android/debug.keystore
+          storePassword=android
+          keyPassword=android
+          keyAlias=androiddebugkey
+          EOF
+
+      #打包APK (debug模式)
       - name: Build APK
         run: |
           cd simple_live_tv_app
