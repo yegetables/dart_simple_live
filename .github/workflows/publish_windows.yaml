@@ -48,6 +48,8 @@ jobs:
         run: |
           cd simple_live_app
           flutter build windows --release
+        env:
+          _SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS: "1"
 
       #打包zip
       - name: Package zip
