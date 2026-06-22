@@ -9,71 +9,44 @@ jobs:
     permissions:
       contents: write
     steps:
-      #签出代码
+      # 签出代码
       - uses: actions/checkout@v4
         with:
           ref: master
-
-      # 设置JAVA环境
-      - uses: actions/setup-java@v4
-        with:
-          distribution: "zulu"
-          java-version: "17"
-          cache: "gradle"
-
-      #设置Flutter
-      - name: Flutter action
+      # 设置Flutter环境
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.38.x"
           cache: true
-
-      # 打开Windows Desktop支持
       - name: Enable Flutter Desktop
         run: flutter config --enable-windows-desktop
-
-      #安装依赖
-      - name: Install dependencies
-        run: |
-          dart pub global activate flutter_distributor
-
-      #更新Flutter的packages
-      - name: Restore packages
+      - name: Restore Packages
         run: |
           cd simple_live_app
           flutter pub get
-
-      #打包Windows
+      # 设置flutter_distributor环境
+      - name: Install flutter_distributor
+        run: dart pub global activate flutter_distributor
+      # build Windows ZIP/MSIX
       - name: Build Windows
         run: |
           cd simple_live_app
-          flutter build windows --release
-        env:
-          _SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS: "1"
-
-      #打包zip
-      - name: Package zip
-        uses: thedoctor0/zip-release@0.7.6
-        with:
-          type: 'zip'
-          directory: 'simple_live_app/build/windows/x64/runner/Release'
-          filename: 'simple_live_app-windows.zip'
-
+          flutter_distributor package --platform windows --targets msix,zip --skip-clean
       #上传至Artifacts
       - name: Upload to Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: windows
           path: |
-            simple_live_app/build/windows/x64/runner/Release/simple_live_app-windows.zip
-
+            simple_live_app/dist/**/*.msix
+            simple_live_app/dist/**/*.zip
       #读取版本信息
       - name: Read version
         id: version
         uses: juliangruber/read-file-action@v1
         with:
           path: assets/app_version.json
-
       #上传至Release
       - name: Upload Release
         uses: softprops/action-gh-release@v1
@@ -82,7 +55,7 @@ jobs:
           body: "# Windows\n${{ fromJson(steps.version.outputs.content).version_desc }}"
           prerelease: ${{ fromJson(steps.version.outputs.content).prerelease }}
           files: |
-            simple_live_app/build/windows/x64/runner/Release/simple_live_app-windows.zip
-
+            simple_live_app/dist/**/*.msix
+            simple_live_app/dist/**/*.zip
       #完成
       - run: echo "🍏 This job's status is ${{ job.status }}."
