@@ -5,7 +5,7 @@ on:
       - "win_*"
 jobs:
   build-windows:
-    runs-on: windows-latest
+    runs-on: windows-2022
     permissions:
       contents: write
     steps:
@@ -28,11 +28,6 @@ jobs:
       # 设置flutter_distributor环境
       - name: Install flutter_distributor
         run: dart pub global activate flutter_distributor
-      # 设置环境变量抑制 coroutine 警告
-      - name: Set environment
-        run: |
-          echo "_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS=1" >> $env:GITHUB_ENV
-          echo "CXXFLAGS=-D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS" >> $env:GITHUB_ENV
       # build Windows ZIP/MSIX
       - name: Build Windows
         run: |
